@@ -19,6 +19,8 @@ module.exports = function ourLibrary(server, db, queries) {
     if (queries[key].response) {
       //RUN SEQUALIZE METHOD
       subscribedSockets[key].forEach(socket => {
+        // ****ideally the socket to make the set would get the response first!!!
+        // probably best to send the changes. not all the data
         socket.emit('response', { data: commentsData, key });
       });
     }
@@ -31,6 +33,7 @@ module.exports = function ourLibrary(server, db, queries) {
       socket.emit('queryResponse', { response: response[1].rows, key });
     }).catch(error => {
       socket.emit('queryResponse', { error });
+      // **are we confident that this is an error object--perhaps new Error(error) ???
     });
   };
 
@@ -45,7 +48,7 @@ module.exports = function ourLibrary(server, db, queries) {
           subscribedSockets[data.key] = [socket];
         }
       }
-      handleSet(data.key, data.value); 
+      handleSet(data.key, data.value);
     });
 
     socket.on('query', data => {

@@ -19,10 +19,12 @@ const db = {
 const queries = {
   messages: {
     query: 'INSERT INTO posts (chatmessage, user_id) VALUES (?, ?)',
-    response: 'SELECT * at COMMENTS'
+    response: 'SELECT * at COMMENTS',
   },
   register: 'INSERT INTO users (username, password) VALUES (?, ?)',
-  login: 'SELECT username FROM users WHERE username = ? AND password = ?'
+  login: 'SELECT username FROM users WHERE username = ? AND password = ?',
+  // "login / register" would be a "query" (with a response if necessary) and
+  // "messages" would be a "set" with the response specified in advance
 };
 
 ourLibrary(server, db, queries);

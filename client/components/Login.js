@@ -6,7 +6,7 @@ class Login extends Component {
     super(props);
     this.state = {
       user: '',
-      password: ''
+      password: '',
     };
   }
 
@@ -27,7 +27,11 @@ class Login extends Component {
           alert('incorrect login');
         } else {
           console.log(data.response[0].username);
-          set('username', data.response[0].username);
+          set('username', data.response[0].username); // **I'm think this should be using local state OR
+          // it must be kept in sync with the database
+          // and then questionable whether we need a set AND query method
+          // can we whiteboard out when you would use query (one liner with possible response)
+          // versus set (two liner with response specific in advance) !
         }
       }
     }, [this.state.user, this.state.password]);
