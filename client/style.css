@@ -29,10 +29,9 @@ button {
   cursor: pointer;
 }
 
-#chat div:first-child {
+#message-box {
   background-color: white;
   width: 50vw;
-  height: 30vw;
   margin-bottom: 30px;
   border: 2px solid black;
   padding: 20px;

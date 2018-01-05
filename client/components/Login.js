@@ -21,17 +21,15 @@ class Login extends Component {
   handleLogin() {
     query('login', data => {
       if (data.error) {
-        alert(data.error);
+        console.log(JSON.stringify(data.error));
+        alert('There was a problem with the database.');
       } else {
         if (data.response.length === 0) {
           alert('incorrect login');
         } else {
-          console.log(data.response[0].username);
-          set('username', data.response[0].username); // **I'm think this should be using local state OR
-          // it must be kept in sync with the database
-          // and then questionable whether we need a set AND query method
-          // can we whiteboard out when you would use query (one liner with possible response)
-          // versus set (two liner with response specific in advance) !
+          console.log(data.response);
+          set('username', data.response.username);
+          set('id', data.response.id);
         }
       }
     }, [this.state.user, this.state.password]);
@@ -42,7 +40,8 @@ class Login extends Component {
       if (data.error) {
         console.log(data.error);
       } else {
-        set('username', this.state.user);
+        set('username', data.response.username);
+        set('id', data.response.id);
       }
     }, [this.state.user, this.state.password]);
   }

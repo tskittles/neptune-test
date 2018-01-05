@@ -30,23 +30,14 @@ export const get = (key) => {
   return store.state[key];
 }
 
-// *****I'm thinking that if you are using our library, it MUST sync with the database.
-// Otherwise, you should be using your redux store or component state
-// when would be a situation where that wouldn't be the case??
-// in which case we wouldn't really need a set AND a query method... hmmm maybe not
-export const set = (key, value, sync = false, subscribe = true, callback) => {
+export const set = (key, value, runQueries = true, callback) => {
   if (callback) {
-    const newState = callback(store.state[key]);
-    store.addToStore(key, newState);
-    if (sync) {
-      socket.emit('set', { key, value, subscribe });
-    }
+    const oldState = store.state[key];
+    store.addToStore(key, callback(oldState));
   } else {
     store.addToStore(key, value);
-    if (sync) {
-      socket.emit('set', { key, value, subscribe });
-    }
   }
+  socket.emit('set', { key, value, runQueries });
 }
 
 export const query = (key, callback, values) => {
@@ -56,7 +47,7 @@ export const query = (key, callback, values) => {
 }
 
 socket.on('response', data => {
-  set(data.key, data.data);
+  set(data.key, data.response, false);
 });
 
 socket.on('queryResponse', data => {
