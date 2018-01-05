@@ -30,19 +30,14 @@ export const get = (key) => {
   return store.state[key];
 }
 
-export const set = (key, value, sync = false, subscribe = true, callback) => {
+export const set = (key, value, runQueries = true, callback) => {
   if (callback) {
-    const newState = callback(store.state[key]);
-    store.addToStore(key, newState);
-    if (sync) {
-      socket.emit('set', { key, value, subscribe });
-    }
+    const oldState = store.state[key];
+    store.addToStore(key, callback(oldState));
   } else {
     store.addToStore(key, value);
-    if (sync) {
-      socket.emit('set', { key, value, subscribe });
-    }
   }
+  socket.emit('set', { key, value, runQueries });
 }
 
 export const query = (key, callback, values) => {
@@ -51,7 +46,7 @@ export const query = (key, callback, values) => {
 }
 
 socket.on('response', data => {
-  set(data.key, data.data);
+  set(data.key, data.response, false);
 });
 
 socket.on('queryResponse', data => {

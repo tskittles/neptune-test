@@ -21,13 +21,15 @@ class Login extends Component {
   handleLogin() {
     query('login', data => {
       if (data.error) {
-        alert(data.error);
+        console.log(JSON.stringify(data.error));
+        alert('There was a problem with the database.');
       } else {
         if (data.response.length === 0) {
           alert('incorrect login');
         } else {
-          console.log(data.response[0].username);
-          set('username', data.response[0].username);
+          console.log(data.response);
+          set('username', data.response.username);
+          set('id', data.response.id);
         }
       }
     }, [this.state.user, this.state.password]);
@@ -38,7 +40,8 @@ class Login extends Component {
       if (data.error) {
         console.log(data.error);
       } else {
-        set('username', this.state.user);
+        set('username', data.response.username);
+        set('id', data.response.id);
       }
     }, [this.state.user, this.state.password]);
   }
