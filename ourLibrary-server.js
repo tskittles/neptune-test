@@ -49,17 +49,12 @@ module.exports = function ourLibrary(server, db, queries) {
         socket.emit('queryResponse', { response: response[1].rows, key });
       }
     }).catch(error => {
-<<<<<<< HEAD
-      socket.emit('queryResponse', { error });
-      // **are we confident that this is an error object--perhaps new Error(error) ???
-=======
       console.log(chalk.red('Error with database: '), chalk.yellow(error));
       if (queries[key].errorMessage) {
         socket.emit('queryResponse', { error: queries[key].errorMessage });
       } else {
         socket.emit('queryResponse', { error: 'Error with database' });
       }
->>>>>>> 42a4b7074390a6f7e1878c7d37be767b76fbd99c
     });
   };
 
@@ -73,15 +68,10 @@ module.exports = function ourLibrary(server, db, queries) {
         } else {
           subscribedSockets[data.key] = [socket];
         }
-<<<<<<< HEAD
-      }
-      handleSet(data.key, data.value);
-=======
         if (data.runQueries) {
           handleSet(data.key, data.value, socket);
         }
       }
->>>>>>> 42a4b7074390a6f7e1878c7d37be767b76fbd99c
     });
 
     socket.on('query', data => {
