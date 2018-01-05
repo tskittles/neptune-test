@@ -5,7 +5,7 @@ const ourLibrary = require('./ourLibrary-server');
 
 app.use(express.static(path.resolve(__dirname, 'build')));
 
-const server = app.listen(3000, () => console.log("Server Connected"));
+const server = app.listen(process.env.PORT || 3000, () => console.log("Server Connected"));
 
 const db = {
   name: 'qxqigbwr',
