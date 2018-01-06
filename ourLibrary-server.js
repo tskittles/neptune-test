@@ -59,6 +59,8 @@ module.exports = function ourLibrary(server, db, queries) {
   };
 
   io.on('connection', socket => {
+    socket.emit('local');
+
     socket.on('set', data => {
       if (queries[data.key]) {
         if (subscribedSockets[data.key]) {
