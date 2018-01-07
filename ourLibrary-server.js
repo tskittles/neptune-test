@@ -12,7 +12,7 @@ module.exports = function ourLibrary(server, db, queries) {
 
   const subscribedSockets = {};
 
-  const handleSet = (key, value, socket) => {
+  const handleSet = (key, value, socket, counter) => {
     sequelize.query(queries[key].query,
       { replacements: value }
     ).then(response => {
@@ -22,9 +22,9 @@ module.exports = function ourLibrary(server, db, queries) {
         ).then(secondResponse => {
           subscribedSockets[key].forEach(subscribedSocket => {
             if (queries[key].callback) {
-              subscribedSocket.emit('response', { response: queries[key].callback(secondResponse[1].rows), key });
+              subscribedSocket.emit('response', { response: queries[key].callback(secondResponse[1].rows), key, counter });
             } else {
-              subscribedSocket.emit('response', { response: secondResponse[1].rows, key });
+              subscribedSocket.emit('response', { response: secondResponse[1].rows, key, counter });
             }
           });
         })
@@ -32,28 +32,28 @@ module.exports = function ourLibrary(server, db, queries) {
     }).catch(error => {
       console.log(chalk.red('Error with database: '), chalk.yellow(error));
       if (queries[key].errorMessage) {
-        socket.emit('queryResponse', { error: queries[key].errorMessage });
+        socket.emit('queryResponse', { error: queries[key].errorMessage, counter });
       } else {
-        socket.emit('queryResponse', { error: 'Error with database' });
+        socket.emit('queryResponse', { error: 'Error with database', counter });
       }
     });
   };
 
-  const handleQuery = (key, values, socket) => {
+  const handleQuery = (key, values, socket, counter) => {
     sequelize.query(queries[key].query,
       { replacements: values }
     ).then(response => {
       if (queries[key].callback) {
-        socket.emit('queryResponse', { response: queries[key].callback(response[1].rows), key });
+        socket.emit('queryResponse', { response: queries[key].callback(response[1].rows), key, counter });
       } else {
-        socket.emit('queryResponse', { response: response[1].rows, key });
+        socket.emit('queryResponse', { response: response[1].rows, key, counter });
       }
     }).catch(error => {
       console.log(chalk.red('Error with database: '), chalk.yellow(error));
       if (queries[key].errorMessage) {
-        socket.emit('queryResponse', { error: queries[key].errorMessage });
+        socket.emit('queryResponse', { error: queries[key].errorMessage, counter });
       } else {
-        socket.emit('queryResponse', { error: 'Error with database' });
+        socket.emit('queryResponse', { error: 'Error with database', counter });
       }
     });
   };
@@ -71,13 +71,13 @@ module.exports = function ourLibrary(server, db, queries) {
           subscribedSockets[data.key] = [socket];
         }
         if (data.runQueries) {
-          handleSet(data.key, data.value, socket);
+          handleSet(data.key, data.value, socket, data.counter);
         }
       }
     });
 
     socket.on('query', data => {
-      handleQuery(data.key, data.values, socket);
+      handleQuery(data.key, data.values, socket, data.counter);
     });
   });
 };

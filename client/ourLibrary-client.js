@@ -7,6 +7,8 @@ class Controller extends Component {
     super(props);
     this.state = {
       first: 'ok!!!!!',
+      cache: {},
+      counter: 0,
     };
   }
 
@@ -38,55 +40,94 @@ export const set = (key, value, runQueries = true, callback) => {
   } else {
     store.addToStore(key, value);
   }
-  socket.emit('set', { key, value, runQueries });
-  localforage.getItem('queue', (err, queue) => {
-    if (queue) {
-      queue.push({set, key, value, runQueries, callback});
-      localforage.setItem('queue', queue);
-    } else {
-      localforage.setItem('queue', [{set, key, value, runQueries, callback}]);
-    }
-  });
+  const counter = this.state.counter + 1;
+  socket.emit('set', { key, value, runQueries, counter });
+
+  this.setState(prevState => {
+    const addedState = {counter: { method: set, arguments: {key, value, runQueries, callback }}};
+    const newCache = Object.assign({}, prevState.cache, addedState);
+    return {cache: { newCache } };
+  })
+};
+
+  // localforage.getItem('queue', (err, queue) => {
+  //   if (queue) {
+  //     queue.push({set, key, value, runQueries, callback});
+  //     localforage.setItem('queue', queue);
+  //   } else {
+  //     localforage.setItem('queue', [{set, key, value, runQueries, callback}]);
+  //   }
+  // });
 };
 
 export const query = (key, callback, value) => {
-  socket.emit('query', { key, value });
   currentCallback = callback;
-  localforage.getItem('queue', (err, queue) => {
-    if (queue) {
-      queue.push({query, key, value, callback});
-      localforage.setItem('queue', queue);
-    } else {
-      localforage.setItem('queue', [{query, key, value, callback}]);
-    }
-  });
+
+  const counter = this.state.counter + 1;
+  socket.emit('query', { key, value, counter });
+
+  this.setState(prevState => {
+    const addedState = {counter: { method: query, arguments: {key, value, callback }}};
+    const newCache = Object.assign({}, prevState.cache, addedState);
+    return {cache: { newCache } };
+  })
+
+  // localforage.getItem('queue', (err, queue) => {
+  //   if (queue) {
+  //     queue.push({query, key, value, callback});
+  //     localforage.setItem('queue', queue);
+  //   } else {
+  //     localforage.setItem('queue', [{query, key, value, callback}]);
+  //   }
+  // });
 };
 
 socket.on('local', () => {
   console.log('back connecteddddd');
-  if (localforage.getItem('queue') !== null) {
-    const list = localforage.getItem('queue');
-    console.log('list ', list);
-    list.forEach((x) => {
-      if (x.set) {
-        socket.emit('set', { key: x.key, value: x.value, runQueries: x.runQueries });
-      } else if (x.query) {
-        socket.emit('query', { key: x.key, value: x.value });
-      }
-    });
+
+  for (x in this.state.cache) {
+    if (x !== 0) {
+      socket.emit(x.method, x.arguments);
+    }
   }
+  // if (localforage.getItem('queue') !== null) {
+  //   const list = localforage.getItem('queue');
+  //   console.log('list ', list);
+  //   list.forEach((x) => {
+  //     if (x.set) {
+  //       socket.emit('set', { key: x.key, value: x.value, runQueries: x.runQueries });
+  //     } else if (x.query) {
+  //       socket.emit('query', { key: x.key, value: x.value });
+  //     }
+  //   });
+  // }
 });
 
 socket.on('response', (data) => {
   set(data.key, data.response, false);
-  const queue = localforage.getItem('queue');
-  queue.shift();
-  localforage.setItem('queue', queue);
+
+  this.setState(prevState => {
+    prevState.cache[data.counter] = 0;
+    const newCache = prevState.cache;
+    return {cache: { newCache } };
+  })
+  // const queue = localforage.getItem('queue');
+  // queue.shift();
+  // localforage.setItem('queue', queue);
 });
 
 socket.on('queryResponse', (data) => {
-  currentCallback(data);
-  const queue = localforage.getItem('queue');
-  queue.shift();
-  localforage.setItem('queue', queue);
+  // currentCallback(data);
+
+  data.callback(data.data);
+
+  this.setState(prevState => {
+    prevState.cache[data.counter] = 0;
+    const newCache = prevState.cache;
+    return {cache: { newCache } };
+  })
+
+  // const queue = localforage.getItem('queue');
+  // queue.shift();
+  // localforage.setItem('queue', queue);
 });
