@@ -21,8 +21,8 @@ class Controller extends Component {
   }
 }
 
-let store,
-  currentCallback;
+let store;
+// let currentCallback;
 // const socket = io('https://boiling-cove-32080.herokuapp.com/');
 const socket = io('https://localhost:3000');
 
@@ -40,10 +40,10 @@ export const set = (key, value, runQueries = true, callback) => {
   } else {
     store.addToStore(key, value);
   }
-  const counter = this.state.counter + 1;
+  const counter = store.state.counter + 1;
   socket.emit('set', { key, value, runQueries, counter });
 
-  this.setState(prevState => {
+  store.setState(prevState => {
     const addedState = {counter: { method: set, arguments: {key, value, runQueries, callback }}};
     const newCache = Object.assign({}, prevState.cache, addedState);
     return {cache: { newCache } };
@@ -58,15 +58,15 @@ export const set = (key, value, runQueries = true, callback) => {
   //     localforage.setItem('queue', [{set, key, value, runQueries, callback}]);
   //   }
   // });
-};
+
 
 export const query = (key, callback, value) => {
-  currentCallback = callback;
+  // currentCallback = callback;
 
-  const counter = this.state.counter + 1;
+  const counter = store.state.counter + 1;
   socket.emit('query', { key, value, counter });
 
-  this.setState(prevState => {
+  store.setState(prevState => {
     const addedState = {counter: { method: query, arguments: {key, value, callback }}};
     const newCache = Object.assign({}, prevState.cache, addedState);
     return {cache: { newCache } };
@@ -106,7 +106,7 @@ socket.on('local', () => {
 socket.on('response', (data) => {
   set(data.key, data.response, false);
 
-  this.setState(prevState => {
+  store.setState(prevState => {
     prevState.cache[data.counter] = 0;
     const newCache = prevState.cache;
     return {cache: { newCache } };
@@ -121,7 +121,7 @@ socket.on('queryResponse', (data) => {
 
   data.callback(data.data);
 
-  this.setState(prevState => {
+  store.setState(prevState => {
     prevState.cache[data.counter] = 0;
     const newCache = prevState.cache;
     return {cache: { newCache } };
