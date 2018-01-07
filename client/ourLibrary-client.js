@@ -23,8 +23,8 @@ class Controller extends Component {
 
 let store;
 // let currentCallback;
-const socket = io('https://boiling-cove-32080.herokuapp.com/');
-// const socket = io('https://localhost:3000');
+const socket = io.connect();
+
 
 export const Wrapper = () => {
   store = new Controller();
@@ -41,13 +41,17 @@ export const set = (key, value, runQueries = true, callback) => {
     store.addToStore(key, value);
   }
   const counter = store.state.counter + 1;
-  socket.emit('set', { key, value, runQueries, counter });
+  socket.emit('set', {
+ key, value, runQueries, counter
+});
 
-  store.setState(prevState => {
-    const addedState = {counter: { method: set, arguments: {key, value, runQueries, callback }}};
+  store.setState((prevState) => {
+    const addedState = { counter: { method: set, arguments: {
+ key, value, runQueries, callback
+} } };
     const newCache = Object.assign({}, prevState.cache, addedState);
-    return {cache: { newCache } };
-  })
+    return { cache: { newCache } };
+  });
 };
 
   // localforage.getItem('queue', (err, queue) => {
@@ -66,11 +70,11 @@ export const query = (key, callback, value) => {
   const counter = store.state.counter + 1;
   socket.emit('query', { key, value, counter });
 
-  store.setState(prevState => {
-    const addedState = {counter: { method: query, arguments: {key, value, callback }}};
+  store.setState((prevState) => {
+    const addedState = { counter: { method: query, arguments: { key, value, callback } } };
     const newCache = Object.assign({}, prevState.cache, addedState);
-    return {cache: { newCache } };
-  })
+    return { cache: { newCache } };
+  });
 
   // localforage.getItem('queue', (err, queue) => {
   //   if (queue) {
@@ -85,11 +89,13 @@ export const query = (key, callback, value) => {
 socket.on('local', () => {
   console.log('back connecteddddd');
 
-  for (x in this.state.cache) {
-    if (x !== 0) {
-      socket.emit(x.method, x.arguments);
+  const obj = store.state.cache;
+  Object.values(obj).forEach((value) => {
+    if (value !== 0) {
+      socket.emit(value.method, value.arguments);
     }
-  }
+  });
+
   // if (localforage.getItem('queue') !== null) {
   //   const list = localforage.getItem('queue');
   //   console.log('list ', list);
@@ -106,11 +112,11 @@ socket.on('local', () => {
 socket.on('response', (data) => {
   set(data.key, data.response, false);
 
-  store.setState(prevState => {
+  store.setState((prevState) => {
     prevState.cache[data.counter] = 0;
     const newCache = prevState.cache;
-    return {cache: { newCache } };
-  })
+    return { cache: { newCache } };
+  });
   // const queue = localforage.getItem('queue');
   // queue.shift();
   // localforage.setItem('queue', queue);
@@ -119,13 +125,15 @@ socket.on('response', (data) => {
 socket.on('queryResponse', (data) => {
   // currentCallback(data);
 
-  data.callback(data.data);
+  if (data.callback) {
+    data.callback(data.data);
+  }
 
-  store.setState(prevState => {
+  store.setState((prevState) => {
     prevState.cache[data.counter] = 0;
     const newCache = prevState.cache;
-    return {cache: { newCache } };
-  })
+    return { cache: { newCache } };
+  });
 
   // const queue = localforage.getItem('queue');
   // queue.shift();
