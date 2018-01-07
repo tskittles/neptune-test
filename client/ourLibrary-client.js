@@ -23,8 +23,8 @@ class Controller extends Component {
 
 let store;
 // let currentCallback;
-// const socket = io('https://boiling-cove-32080.herokuapp.com/');
-const socket = io('https://localhost:3000');
+const socket = io('https://boiling-cove-32080.herokuapp.com/');
+// const socket = io('https://localhost:3000');
 
 export const Wrapper = () => {
   store = new Controller();
