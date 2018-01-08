@@ -63,6 +63,8 @@ export const set = (key, value, runQueries = true, callback) => {
 export const query = (key, callback, value) => {
   // currentCallback = callback;
 
+  console.log("CALLBACK", callback);
+
   const counter = store.state._counter_ + 1;
   socket.emit('query', { key, value, counter, callback });
 

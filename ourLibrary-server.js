@@ -77,6 +77,7 @@ module.exports = function ourLibrary(server, db, queries) {
     });
 
     socket.on('query', (data) => {
+      console.log('CALLBACK', data.callback);
       handleQuery(data.key, data.value, socket, data.counter, data.callback);
     });
   });
