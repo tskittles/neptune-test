@@ -1,6 +1,7 @@
 import React, { Component, cloneElement } from 'react';
 import io from 'socket.io-client';
 
+//ACTUALLY JUST saveit to an object NOT to react storeage and it should work just fine!!!
 class Controller extends Component {
   constructor(props) {
     super(props);
@@ -10,7 +11,7 @@ class Controller extends Component {
       _counter_: 0,
     };
   }
-
+ 
   addToStore(key, value) {
     this.setState({ [key]: value });
   }
@@ -47,15 +48,12 @@ export const set = (key, value, runQueries = true, callback) => {
 
   store.setState((prevState) => {
     const addedState = {
-      counter: {
-        method: set,
-        arguments: {
-          key, value, runQueries, callback,
-        },
+      [counter]: {
+        method: 'set', arguments: { key, value, runQueries, callback },
       },
     };
     const newCache = Object.assign({}, prevState._agent_cache, addedState);
-    return { _agent_cache: { newCache } };
+    return { _agent_cache: newCache, _counter_: counter };
   });
 };
 
@@ -63,15 +61,19 @@ export const set = (key, value, runQueries = true, callback) => {
 export const query = (key, callback, value) => {
   // currentCallback = callback;
 
-  console.log("CALLBACK", callback);
-
   const counter = store.state._counter_ + 1;
   socket.emit('query', { key, value, counter, callback });
 
   store.setState((prevState) => {
-    const addedState = { counter: { method: query, arguments: { key, value, callback } } };
-    const newCache = Object.assign({}, prevState._agent_cache, addedState);
-    return { _agent_cache: { newCache } };
+    let newCache = prevState._agent_cache[counter] = { method: 'query', arguments: { key, value, callback } };
+    return { _agent_cache: newCache, _counter_: counter };
+
+    // const addedState = { [counter]: { method: 'query', arguments: { key, value, callback } } };
+    // console.log('PS', prevState._agent_cache);
+    // console.log('AS', addedState);
+    // const newCache = Object.assign({}, prevState._agent_cache, addedState);
+    // console.log('NC', newCache)
+    // return { _agent_cache: newCache, _counter_: counter };
   });
 };
 
@@ -90,14 +92,16 @@ socket.on('response', (data) => {
   store.setState((prevState) => {
     prevState._agent_cache[data.counter] = 0;
     const newCache = prevState._agent_cache;
-    return { _agent_cache: { newCache } };
+    return { _agent_cache: newCache };
   });
 });
 
 socket.on('queryResponse', (data) => {
   // currentCallback(data);
 
-  console.log("DATA", data.response);
+  // this below code section needs work
+  const counter = data.counter;
+  console.log(store.state._agent_cache);
   if (data.callback) {
     data.callback(data.response);
   }
@@ -105,6 +109,6 @@ socket.on('queryResponse', (data) => {
   store.setState((prevState) => {
     prevState._agent_cache[data.counter] = 0;
     const newCache = prevState._agent_cache;
-    return { _agent_cache: { newCache } };
+    return { _agent_cache: newCache };
   });
 });
