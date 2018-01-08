@@ -1,3 +1,5 @@
+
+/* eslint-disable */
 import React, { Component } from 'react';
 import { set, get, query } from '../ourLibrary-client';
 
@@ -40,10 +42,11 @@ class Login extends Component {
       if (data.error) {
         console.log(data.error);
       } else {
+        console.log("DATA :", data);
         set('username', data.response.username);
         set('id', data.response.id);
       }
-    }, [this.state.user, this.state.password]);
+    }, [this.state.user, this.state.password, this.state.user, this.state.password]);
   }
 
   render() {
@@ -57,7 +60,7 @@ class Login extends Component {
       return (
         <div id='login'>
           <input value={this.state.user} onChange={this.handleUser.bind(this)} type='text' />
-          <input value={this.state.password} onChange={this.handlePassword.bind(this)} type='password' />
+          <input value={this.state.password} onChange={this.handlePassword.bind(this)} type="password" />
           <button onClick={this.handleLogin.bind(this)}>Login</button>
           <button onClick={this.handleRegister.bind(this)}>Register</button>
         </div>

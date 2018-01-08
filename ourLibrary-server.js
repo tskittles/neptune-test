@@ -1,6 +1,6 @@
 module.exports = function ourLibrary(server, db, queries) {
-  const socket = require('socket.io');
-  const io = socket(server);
+  const socketio = require('socket.io');
+  const io = socketio(server);
   const Sequelize = require('sequelize');
   const chalk = require('chalk');
 
@@ -22,9 +22,9 @@ module.exports = function ourLibrary(server, db, queries) {
         ).then((secondResponse) => {
           subscribedSockets[key].forEach((subscribedSocket) => {
             if (queries[key].callback) {
-              subscribedSocket.emit('response', { response: queries[key].callback(secondResponse[1].rows), key, counter });
+              subscribedSocket.emit('response', { response: queries[key].callback(secondResponse), key, counter });
             } else {
-              subscribedSocket.emit('response', { response: secondResponse[1].rows, key, counter });
+              subscribedSocket.emit('response', { response: secondResponse, key, counter });
             }
           });
         })
@@ -39,14 +39,14 @@ module.exports = function ourLibrary(server, db, queries) {
     });
   };
 
-  const handleQuery = (key, values, socket, counter, callback) => {
+  const handleQuery = (key, value, socket, counter, callback) => {
     sequelize.query(queries[key].query,
-      { replacements: values }
+      { replacements: value }
     ).then((response) => {
       if (queries[key].callback) {
-        socket.emit('queryResponse', { response: queries[key].callback(response[1].rows), key, counter, callback });
+        socket.emit('queryResponse', { response: queries[key].callback(response), key, counter, callback });
       } else {
-        socket.emit('queryResponse', { response: response[1].rows, key, counter, callback });
+        socket.emit('queryResponse', { response, key, counter, callback });
       }
     }).catch((error) => {
       console.log(chalk.red('Error with database: '), chalk.yellow(error));
@@ -77,7 +77,7 @@ module.exports = function ourLibrary(server, db, queries) {
     });
 
     socket.on('query', (data) => {
-      handleQuery(data.key, data.values, socket, data.counter, data.callback);
+      handleQuery(data.key, data.value, socket, data.counter, data.callback);
     });
   });
 };

@@ -25,13 +25,14 @@ const queries = {
     query: 'SELECT posts.chatmessage, posts.date, users.username FROM posts INNER JOIN users ON (posts.user_id = users._id)',
   },
   register: {
-    query: 'INSERT INTO users (username, password) VALUES (?, ?)',
+    query: 'INSERT INTO users (username, password) VALUES (?, ?); SELECT username, _id FROM users WHERE username = ? AND password = ?',
+    callback: response => ({ username: response[0][0].username, id: response[0][0]._id }),
     errorMessage: 'yikes',
   },
   login: {
     query: 'SELECT username, _id FROM users WHERE username = ? AND password = ?',
     // in documentation recommend to console.log response to see db results
-    callback: response => ({ username: response[0].username, id: response[0]._id }),
+    callback: response => ({ username: response[0][0].username, id: response[0][0]._id }),
     errorMessage: 'oh no',
   },
 };

@@ -5,8 +5,14 @@ class Chat extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      text: ''
+      text: '',
     };
+  }
+
+  componentDidMount() {
+    query('getMessages', (data) => {
+      set('messages', data.response, false);
+    });
   }
 
   handleText(event) {
@@ -15,18 +21,12 @@ class Chat extends Component {
 
   handleSend() {
     if (get('id')) {
-      set('messages', [this.state.text, get('id')], true, previous => {
+      set('messages', [this.state.text, get('id')], true, (previous) => {
         return [...previous, { chatmessage: this.state.text, date: Date.now(), username: get('username') }];
       });
     } else {
       alert('You must be logged in to comment.');
     }
-  }
-
-  componentDidMount() {
-    query('getMessages', data => {
-      set('messages', data.response, false);
-    });
   }
 
   handleMessages(messages) {
