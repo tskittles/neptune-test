@@ -11,7 +11,7 @@ class Chat extends Component {
 
   componentDidMount() {
     query('getMessages', (data) => {
-      set('messages', data.response, false);
+      set('messages', data.data, false);
     });
   }
 

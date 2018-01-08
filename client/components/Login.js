@@ -26,12 +26,11 @@ class Login extends Component {
         console.log(JSON.stringify(data.error));
         alert('There was a problem with the database.');
       } else {
-        if (data.response.length === 0) {
+        if (data.length === 0) {
           alert('incorrect login');
         } else {
-          console.log(data.response);
-          set('username', data.response.username);
-          set('id', data.response.id);
+          set('username', data.username);
+          set('id', data.id);
         }
       }
     }, [this.state.user, this.state.password]);
@@ -43,8 +42,8 @@ class Login extends Component {
         console.log(data.error);
       } else {
         console.log("DATA :", data);
-        set('username', data.response.username);
-        set('id', data.response.id);
+        set('username', data.username);
+        set('id', data.id);
       }
     }, [this.state.user, this.state.password, this.state.user, this.state.password]);
   }

@@ -39,14 +39,14 @@ module.exports = function ourLibrary(server, db, queries) {
     });
   };
 
-  const handleQuery = (key, value, socket, counter, callback) => {
+  const handleQuery = (key, value, socket, counter) => {
     sequelize.query(queries[key].query,
       { replacements: value }
     ).then((response) => {
       if (queries[key].callback) {
-        socket.emit('queryResponse', { response: queries[key].callback(response), key, counter, callback });
+        socket.emit('queryResponse', { response: queries[key].callback(response), key, counter });
       } else {
-        socket.emit('queryResponse', { response, key, counter, callback });
+        socket.emit('queryResponse', { response, key, counter });
       }
     }).catch((error) => {
       console.log(chalk.red('Error with database: '), chalk.yellow(error));
@@ -77,8 +77,7 @@ module.exports = function ourLibrary(server, db, queries) {
     });
 
     socket.on('query', (data) => {
-      console.log('CALLBACK', data.callback);
-      handleQuery(data.key, data.value, socket, data.counter, data.callback);
+      handleQuery(data.key, data.value, socket, data.counter);
     });
   });
 };

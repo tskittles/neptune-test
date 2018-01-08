@@ -20,9 +20,11 @@ const queries = {
   messages: {
     query: 'INSERT INTO posts (chatmessage, user_id) VALUES (?, ?)',
     response: 'SELECT posts.chatmessage, posts.date, users.username FROM posts INNER JOIN users ON (posts.user_id = users._id)',
+    callback: response => (response[0]),
   },
   getMessages: {
     query: 'SELECT posts.chatmessage, posts.date, users.username FROM posts INNER JOIN users ON (posts.user_id = users._id)',
+    callback: response => ({ data: response[0] }),
   },
   register: {
     query: 'INSERT INTO users (username, password) VALUES (?, ?); SELECT username, _id FROM users WHERE username = ? AND password = ?',

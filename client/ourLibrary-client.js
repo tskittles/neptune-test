@@ -7,11 +7,9 @@ class Controller extends Component {
     super(props);
     this.state = {
       first: 'ok!!!!!',
-      _agent_cache: {},
-      _counter_: 0,
     };
   }
- 
+
   addToStore(key, value) {
     this.setState({ [key]: value });
   }
@@ -22,7 +20,9 @@ class Controller extends Component {
 }
 
 let store;
+let counter = 0;
 // let currentCallback;
+const cache = {};
 const socket = io.connect();
 
 
@@ -34,6 +34,7 @@ export const Wrapper = () => {
 export const get = (key) => {
   return store.state[key];
 }
+
 export const set = (key, value, runQueries = true, callback) => {
   if (callback) {
     const oldState = store.state[key];
@@ -41,74 +42,43 @@ export const set = (key, value, runQueries = true, callback) => {
   } else {
     store.addToStore(key, value);
   }
-  const counter = store.state._counter_ + 1;
-  socket.emit('set', {
-    key, value, runQueries, counter,
-  });
 
-  store.setState((prevState) => {
-    const addedState = {
-      [counter]: {
-        method: 'set', arguments: { key, value, runQueries, callback },
-      },
-    };
-    const newCache = Object.assign({}, prevState._agent_cache, addedState);
-    return { _agent_cache: newCache, _counter_: counter };
-  });
+  counter += 1;
+  socket.emit('set', { key, value, runQueries, counter });
+
+  cache[counter] = {
+    method: 'set', arguments: { key, value, runQueries, counter }, callback,
+  };
 };
 
 
 export const query = (key, callback, value) => {
   // currentCallback = callback;
 
-  const counter = store.state._counter_ + 1;
-  socket.emit('query', { key, value, counter, callback });
+  counter += 1;
+  socket.emit('query', { key, value, counter });
 
-  store.setState((prevState) => {
-    let newCache = prevState._agent_cache[counter] = { method: 'query', arguments: { key, value, callback } };
-    return { _agent_cache: newCache, _counter_: counter };
-
-    // const addedState = { [counter]: { method: 'query', arguments: { key, value, callback } } };
-    // console.log('PS', prevState._agent_cache);
-    // console.log('AS', addedState);
-    // const newCache = Object.assign({}, prevState._agent_cache, addedState);
-    // console.log('NC', newCache)
-    // return { _agent_cache: newCache, _counter_: counter };
-  });
+  cache[counter] = { method: 'query', arguments: { key, value, counter }, callback };
 };
 
 socket.on('local', () => {
-  const obj = store.state._agent_cache;
-  Object.values(obj).forEach((value) => {
-    if (value !== 0) {
-      socket.emit(value.method, value.arguments);
-    }
+  Object.values(cache).forEach((value) => {
+    socket.emit(value.method, value.arguments);
   });
 });
 
 socket.on('response', (data) => {
   set(data.key, data.response, false);
 
-  store.setState((prevState) => {
-    prevState._agent_cache[data.counter] = 0;
-    const newCache = prevState._agent_cache;
-    return { _agent_cache: newCache };
-  });
+  // delete cache[data.counter];
 });
 
 socket.on('queryResponse', (data) => {
   // currentCallback(data);
 
-  // this below code section needs work
-  const counter = data.counter;
-  console.log(store.state._agent_cache);
-  if (data.callback) {
-    data.callback(data.response);
+  if (cache[data.counter].callback) {
+    cache[data.counter].callback(data.response);
   }
 
-  store.setState((prevState) => {
-    prevState._agent_cache[data.counter] = 0;
-    const newCache = prevState._agent_cache;
-    return { _agent_cache: newCache };
-  });
+  // delete cache[data.counter];
 });
