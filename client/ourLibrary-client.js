@@ -20,13 +20,10 @@ class Controller extends Component {
 
 let store;
 let counter = 0;
-// let currentCallback;
 const cache = {};
-//window.addEventlistener(''onnline):
 let socket = io.connect();
 
 window.addEventListener('online', () => {
-  console.log('back connected');
   socket = io.connect();
 });
 
@@ -57,8 +54,6 @@ export const set = (key, value, runQueries = true, callback) => {
 
 
 export const query = (key, callback, value) => {
-  // currentCallback = callback;
-
   counter += 1;
   socket.emit('query', { key, value, counter });
 
@@ -79,13 +74,13 @@ socket.on('response', (data) => {
 });
 
 socket.on('queryResponse', (data) => {
-  // currentCallback(data);
-
   if (data.counter in cache) {
     if (cache[data.counter].callback) {
       cache[data.counter].callback(data.response);
     }
   }
 
+  console.log('CACHE BEFORE', cache);
   delete cache[data.counter];
+  console.log('CACHE AFTER', cache);
 });
