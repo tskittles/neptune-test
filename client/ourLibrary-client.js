@@ -70,7 +70,9 @@ socket.on('local', () => {
 socket.on('response', (data) => {
   set(data.key, data.response, false);
 
+  console.log('CACHE BEFORE', cache);
   delete cache[data.counter];
+  console.log('CACHE AFTER', cache);
 });
 
 socket.on('queryResponse', (data) => {
