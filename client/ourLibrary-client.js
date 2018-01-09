@@ -1,7 +1,6 @@
 import React, { Component, cloneElement } from 'react';
 import io from 'socket.io-client';
 
-//ACTUALLY JUST saveit to an object NOT to react storeage and it should work just fine!!!
 class Controller extends Component {
   constructor(props) {
     super(props);
@@ -23,8 +22,13 @@ let store;
 let counter = 0;
 // let currentCallback;
 const cache = {};
-const socket = io.connect();
+//window.addEventlistener(''onnline):
+let socket = io.connect();
 
+window.addEventListener('online', () => {
+  console.log('back connected');
+  socket = io.connect();
+});
 
 export const Wrapper = () => {
   store = new Controller();
@@ -62,6 +66,7 @@ export const query = (key, callback, value) => {
 };
 
 socket.on('local', () => {
+  console.log('CACHE', cache);
   Object.values(cache).forEach((value) => {
     socket.emit(value.method, value.arguments);
   });
@@ -70,15 +75,17 @@ socket.on('local', () => {
 socket.on('response', (data) => {
   set(data.key, data.response, false);
 
-  // delete cache[data.counter];
+  delete cache[data.counter];
 });
 
 socket.on('queryResponse', (data) => {
   // currentCallback(data);
 
-  if (cache[data.counter].callback) {
-    cache[data.counter].callback(data.response);
+  if (data.counter in cache) {
+    if (cache[data.counter].callback) {
+      cache[data.counter].callback(data.response);
+    }
   }
 
-  // delete cache[data.counter];
+  delete cache[data.counter];
 });
