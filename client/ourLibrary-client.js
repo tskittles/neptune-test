@@ -63,7 +63,7 @@ export const query = (key, callback, value) => {
 };
 
 socket.on('local', () => {
-  console.log('CACHE', cache);
+  console.log('CACHE LOCAL', JSON.stringify(cache));
   Object.values(cache).forEach((value) => {
     socket.emit(value.method, value.arguments);
   });
@@ -72,9 +72,9 @@ socket.on('local', () => {
 socket.on('response', (data) => {
   set(data.key, data.response, false);
 
-  console.log('CACHE BEFORE', cache);
+  console.log('CACHE BEFORE', JSON.stringify(cache));
   delete cache[data.counter];
-  console.log('CACHE AFTER', cache);
+  console.log('CACHE AFTER', JSON.stringify(cache));
 });
 
 socket.on('queryResponse', (data) => {
@@ -84,7 +84,7 @@ socket.on('queryResponse', (data) => {
     }
   }
 
-  console.log('CACHE BEFORE', cache);
+  console.log('CACHE BEFORE', JSON.stringify(cache));
   delete cache[data.counter];
-  console.log('CACHE AFTER', cache);
+  console.log('CACHE AFTER', JSON.stringify(cache));
 });
