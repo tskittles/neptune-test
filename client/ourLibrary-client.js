@@ -70,7 +70,9 @@ socket.on('local', () => {
 });
 
 socket.on('response', (data) => {
-  set(data.key, data.response, false);
+  if (data.key) {
+    set(data.key, data.response, false);
+  }
 
   console.log('CACHE BEFORE', JSON.stringify(cache));
   delete cache[data.counter];

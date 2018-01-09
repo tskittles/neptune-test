@@ -73,6 +73,8 @@ module.exports = function ourLibrary(server, db, queries) {
         if (data.runQueries) {
           handleSet(data.key, data.value, socket, data.counter);
         }
+      } else {
+        socket.emit('response', { counter: data.counter });
       }
     });
 
