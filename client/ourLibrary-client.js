@@ -44,12 +44,14 @@ export const set = (key, value, runQueries = true, callback) => {
     store.addToStore(key, value);
   }
 
-  counter += 1;
-  socket.emit('set', { key, value, runQueries, counter });
+  if (runQueries) {
+    counter += 1;
+    socket.emit('set', { key, value, runQueries, counter });
 
-  cache[counter] = {
-    method: 'set', arguments: { key, value, runQueries, counter }, callback,
-  };
+    cache[counter] = {
+      method: 'set', arguments: { key, value, runQueries, counter }, callback,
+    };
+  }
 };
 
 
